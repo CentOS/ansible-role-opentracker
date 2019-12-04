@@ -1,0 +1,44 @@
+# opentracker config file
+# This file is a stripped down version from upstream opentracker
+# It's managed by Ansible so don't edit !
+
+# Let's create a template based on opentracker_ipver setting, so ipv4 or ipv6
+
+{% if opentracker_ipver == 'ipv6' %}
+# Listening only on tcp and not udp
+listen.tcp {{ ansible_default_ipv6.address }}
+listen.tcp ::1
+{% if opentracker_whitelist_mode %}
+access.whitelist ./{{ opentracker_whitelist_file }}
+{% endif %}
+
+# Who can access /stats
+access.stats ::1
+access.stats_path stats
+
+{% elif opentracker_ipver == 'ipv4' %}
+# Listening only on tcp and not udp
+{% for ip in ansible_all_ipv4_addresses %}
+listen.tcp {{ ip }}
+{% endfor %}
+listen.tcp 127.0.0.1
+{% if opentracker_whitelist_mode %}
+access.whitelist ./{{ opentracker_whitelist_file }}
+{% endif %}
+
+# Who can access /stats
+access.stats 127.0.0.1
+access.stats_path stats
+{% else %}
+# Doesn't make sense to not have ipv4 or ipv6
+{% endif %}
+
+# Common settings
+tracker.rootdir /var/opentracker
+# Tell opentracker which user to setuid to.
+tracker.user    opentracker
+
+# opentracker can be told to answer to a "GET / HTTP"-request with a
+# redirect to another location (shell option -r).
+tracker.redirect_url {{ opentracker_redirect_url }}
+

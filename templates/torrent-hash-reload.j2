@@ -1,0 +1,34 @@
+#!/bin/bash
+# This wrapper will be called by cron
+# Purpose: verify upstream sha256sum file for whiteliste of torrent hashes
+# Download if different and reload opentracker through SIGHUP
+
+local_file="/var/opentracker/{{ opentracker_whitelist_file }}"
+upstream_file="{{ opentracker_whitelist_url }}"
+
+tmp_checksum=$(mktemp)
+curl --fail --silent ${upstream_file}.sha256sum -o ${tmp_checksum}
+
+if [ "$?" -ne "0" ] ;then
+  # Error downloading checksum, so exiting
+  exit 1
+fi
+
+upstream_checksum=$(cat ${tmp_checksum}|awk '{print $1}')
+
+if [ -e ${local_file} ] ; then
+  local_checksum=$(sha256sum ${local_file})
+else
+  local_checksum="0"
+fi
+
+if [ "${local_checksum}" == "${upstream_checksum}" ] ;then
+  # Nothing to do
+  echo equals
+else
+ curl --fail --silent ${upstream_file} -o ${local_file}
+ chown opentracker ${local_file}
+ kill -HUP $(pidof opentracker-{{ opentracker_ipver }})
+fi
+
+/bin/rm ${tmp_checksum}

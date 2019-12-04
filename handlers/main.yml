@@ -1,1 +1,5 @@
 # Defaults handlers for role opentracker
+- name: restart_opentracker
+  service:
+    name: opentracker-{{ opentracker_ipver }}
+    state: restarted

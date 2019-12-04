@@ -1,1 +1,57 @@
 # Defaults tasks for role opentracker
+
+- name: Ensuring we have the required pkgs installed
+  yum:
+    name: "opentracker-{{ opentracker_ipver }}"
+    state: latest
+
+- name: Configuring opentracker
+  template:
+    src: opentracker.conf.j2
+    dest: "/etc/opentracker/opentracker-{{ opentracker_ipver }}.conf"
+  notify:
+    - restart_opentracker
+
+- name: Ensuring opentracker is started and enabled
+  service:
+    name: "opentracker-{{ opentracker_ipver }}"
+    state: started
+    enabled: True
+
+- name: Opening up torrent rule
+  include_role:
+    name: iptables
+    tasks_from: custom-policy
+  vars:
+    iptables_policy_name: torrent
+    iptables_protocol: tcp
+    iptables_port: "6969"
+    iptables_source: "0.0.0.0/0"
+  when: "opentracker_ipver == 'ipv4'"
+  tags:
+    - iptables
+
+- name: Opening up torrent rule over ipv6
+  include_role:
+    name: iptables
+    tasks_from: custom-policy-ipv6
+  vars:
+    iptables_policy_name: torrent
+    iptables_protocol: tcp
+    iptables_port: "6969"
+    iptables_source: "::/0"
+  when: "opentracker_ipver == 'ipv6'"
+  tags:
+    - iptables
+
+- name: Wrapper script to download newer whitelist file
+  template:
+    src: torrent-hash-reload.j2
+    dest: /usr/libexec/centos/torrent-hash-reload
+    mode: 0750
+
+- name: Ensuring we'll check for new whitelist on regular basis
+  cron:
+    name: Checking new upstream torrent-hash list
+    minute: "*/5"
+    job: /usr/libexec/centos/torrent-hash-reload

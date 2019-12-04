@@ -1,1 +1,15 @@
 # Defaults variables for role opentracker
+
+# Default IP version to use
+# Attention, tracker can have one, but not two at the same time
+# ipv4|ipv6
+opentracker_ipver: ipv4
+# Whitelisted torrent only
+# Default to True to avoid being really open
+opentracker_whitelist_mode: True
+opentracker_whitelist_file: torrent-hashes.list
+# Where to download through cron the .list and .list.sha256sum files
+opentracker_whitelist_url: https://git.centos.org/centos/centos-torrents/raw/master/f/torrent-hashes.list
+
+# where to redirect GET/POST so not bt traffic for /announce
+opentracker_redirect_url: https://www.centos.org/download
