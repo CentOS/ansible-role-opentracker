@@ -3,6 +3,8 @@
 # Purpose: verify upstream sha256sum file for whiteliste of torrent hashes
 # Download if different and reload opentracker through SIGHUP
 
+PATH=$PATH:/usr/local/bin:/sbin:/usr/sbin/
+
 local_file="/var/opentracker/{{ opentracker_whitelist_file }}"
 upstream_file="{{ opentracker_whitelist_url }}"
 
