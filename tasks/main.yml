@@ -9,6 +9,7 @@
   template:
     src: opentracker.conf.j2
     dest: "/etc/opentracker/opentracker-{{ opentracker_ipver }}.conf"
+    mode: 0644
   notify:
     - restart_opentracker
 
